@@ -151,6 +151,7 @@ npm error The `npm ci` command can only install with an existing package-lock.js
 1. **Frontend usando `npm ci --only=production`**: O build do React/Vite precisa das devDependencies
 2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json` (pode afetar frontend e/ou backend)
 3. **Git não instalado**: Algumas dependências npm requerem git para instalação
+4. **Conflitos de dependências peer**: Incompatibilidade entre versões de dependências (ex: React 19 com bibliotecas que suportam apenas React 16-18)
 
 **Solução rápida:**
 ```bash

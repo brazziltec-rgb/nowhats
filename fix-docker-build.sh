@@ -90,6 +90,16 @@ else
     log "✓ Git já está presente no Dockerfile.prod do backend"
 fi
 
+# Verificar conflitos de dependências peer no frontend
+log "Verificando conflitos de dependências peer no frontend..."
+if grep -q "npm install" frontend/Dockerfile.prod && ! grep -q "--legacy-peer-deps" frontend/Dockerfile.prod; then
+    warn "Adicionando --legacy-peer-deps para resolver conflitos de dependências..."
+    sed -i 's/npm install/npm install --legacy-peer-deps/g' frontend/Dockerfile.prod
+    log "✓ Flag --legacy-peer-deps adicionada ao Dockerfile.prod do frontend"
+else
+    log "✓ Dockerfile.prod do frontend já está configurado para conflitos de dependências"
+fi
+
 # Verificar se os arquivos package.json existem
 log "Verificando arquivos de dependências..."
 if [[ ! -f "frontend/package.json" ]]; then
