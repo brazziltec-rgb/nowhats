@@ -96,6 +96,45 @@ Após a instalação, você terá acesso aos seguintes scripts em `/opt/nowhats/
 
 ### Solução de Problemas
 
+#### ❌ Erro de Certificado SSL
+Se você recebeu um erro como:
+```
+nginx: [emerg] cannot load certificate "/etc/letsencrypt/live/seudominio.com/fullchain.pem"
+```
+
+**Solução rápida:**
+```bash
+# Use o script de correção
+chmod +x fix-nginx-ssl.sh
+./fix-nginx-ssl.sh
+```
+
+Este script vai:
+- Reconfigurar o Nginx sem SSL primeiro
+- Verificar se a aplicação está rodando
+- Obter os certificados SSL corretamente
+- Aplicar a configuração SSL final
+
+### ❌ Erro de Permissão ao Copiar Arquivos
+Se você recebeu um erro como:
+```
+cp: cannot create regular file '/opt/nowhats/./.git/objects/pack/...': Permission denied
+```
+
+**Solução rápida:**
+```bash
+# Use o script de correção
+chmod +x fix-copy-permissions.sh
+./fix-copy-permissions.sh
+```
+
+Este script vai:
+- Limpar arquivos problemáticos (.git, node_modules, logs)
+- Instalar rsync se necessário
+- Recopiar apenas os arquivos necessários
+- Definir permissões corretas
+- Verificar se todos os arquivos importantes foram copiados
+
 #### Erro de Permissão
 ```bash
 # Se aparecer erro de permissão do Docker

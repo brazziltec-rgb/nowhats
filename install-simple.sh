@@ -54,7 +54,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Instalar dependências básicas
 log "Instalando dependências básicas..."
-sudo apt install -y curl wget git unzip software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+sudo apt install -y curl wget git unzip rsync software-properties-common apt-transport-https ca-certificates gnupg lsb-release
 
 # Instalar Docker
 log "Instalando Docker..."
@@ -139,9 +139,25 @@ PROJECT_DIR="/opt/nowhats"
 sudo mkdir -p $PROJECT_DIR
 sudo chown $USER:$USER $PROJECT_DIR
 
-# Copiar arquivos do projeto
+# Copiar arquivos do projeto (excluindo .git e outros desnecessários)
 log "Copiando arquivos do projeto..."
-cp -r . $PROJECT_DIR/
+if command -v rsync &> /dev/null; then
+    rsync -av --exclude='.git' --exclude='node_modules' --exclude='*.log' --exclude='sessions' --exclude='uploads' . $PROJECT_DIR/
+else
+    # Fallback usando cp com exclusões manuais
+    find . -maxdepth 1 -type f -exec cp {} $PROJECT_DIR/ \;
+    for dir in backend frontend docker nginx scripts supabase src; do
+        if [[ -d "$dir" ]]; then
+            cp -r "$dir" $PROJECT_DIR/
+        fi
+    done
+    # Copiar arquivos de configuração importantes
+    for file in docker-compose*.yml package.json *.md *.sh *.js *.ts *.json; do
+        if [[ -f "$file" ]]; then
+            cp "$file" $PROJECT_DIR/
+        fi
+    done
+fi
 cd $PROJECT_DIR
 
 # Configurar Docker Compose para produção
@@ -186,29 +202,14 @@ networks:
     driver: bridge
 EOF
 
-# Configurar Nginx
-log "Configurando Nginx..."
+# Configurar Nginx (primeiro sem SSL)
+log "Configurando Nginx temporariamente sem SSL..."
 if [[ "$DOMAIN_TYPE" == "single" ]]; then
-    # Configuração para domínio único
+    # Configuração temporária para domínio único (apenas HTTP)
     sudo tee /etc/nginx/sites-available/nowhats << EOF
 server {
     listen 80;
     server_name $domain;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name $domain;
-
-    # Certificados SSL (serão configurados pelo Certbot)
-    ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-
-    # Configurações SSL
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
 
     # API Backend
     location /api/ {
@@ -238,25 +239,12 @@ server {
 }
 EOF
 else
-    # Configuração para subdomínios
+    # Configuração temporária para subdomínios (apenas HTTP)
     sudo tee /etc/nginx/sites-available/nowhats << EOF
 # Frontend (app.domain.com)
 server {
     listen 80;
     server_name app.$domain;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name app.$domain;
-
-    ssl_certificate /etc/letsencrypt/live/app.$domain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/app.$domain/privkey.pem;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -275,19 +263,6 @@ server {
 server {
     listen 80;
     server_name api.$domain;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name api.$domain;
-
-    ssl_certificate /etc/letsencrypt/live/api.$domain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.$domain/privkey.pem;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
 
     location / {
         proxy_pass http://localhost:5000;
@@ -311,16 +286,35 @@ sudo systemctl reload nginx
 
 log "Nginx configurado com sucesso"
 
+# Construir e iniciar containers primeiro
+log "Construindo e iniciando aplicação..."
+docker-compose -f docker-compose.prod.yml build
+docker-compose -f docker-compose.prod.yml up -d
+
+# Aguardar containers iniciarem
+log "Aguardando containers iniciarem..."
+sleep 30
+
 # Configurar SSL com Certbot
 log "Configurando SSL com Let's Encrypt..."
 echo
 warn "IMPORTANTE: Certifique-se de que seu(s) domínio(s) estão apontando para este servidor!"
+warn "A aplicação deve estar rodando para o Certbot validar o domínio."
 read -p "Pressione Enter para continuar com a configuração SSL..."
 
+# Obter certificados SSL
 if [[ "$DOMAIN_TYPE" == "single" ]]; then
-    sudo certbot --nginx -d $domain --non-interactive --agree-tos --email admin@$domain || warn "Falha na configuração SSL. Configure manualmente depois."
+    if sudo certbot --nginx -d $domain --non-interactive --agree-tos --email admin@$domain; then
+        log "SSL configurado com sucesso para $domain"
+    else
+        warn "Falha na configuração SSL. Você pode configurar manualmente depois com: sudo certbot --nginx -d $domain"
+    fi
 else
-    sudo certbot --nginx -d app.$domain -d api.$domain --non-interactive --agree-tos --email admin@$domain || warn "Falha na configuração SSL. Configure manualmente depois."
+    if sudo certbot --nginx -d app.$domain -d api.$domain --non-interactive --agree-tos --email admin@$domain; then
+        log "SSL configurado com sucesso para app.$domain e api.$domain"
+    else
+        warn "Falha na configuração SSL. Você pode configurar manualmente depois com: sudo certbot --nginx -d app.$domain -d api.$domain"
+    fi
 fi
 
 # Criar usuário admin
@@ -344,15 +338,6 @@ else
 EOF
     log "Configurações do admin salvas"
 fi
-
-# Construir e iniciar containers
-log "Construindo e iniciando aplicação..."
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d
-
-# Aguardar containers iniciarem
-log "Aguardando containers iniciarem..."
-sleep 30
 
 # Criar usuário admin se configurado
 if [[ -f /tmp/admin-config.json ]]; then
