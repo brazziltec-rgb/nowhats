@@ -141,6 +141,16 @@ Se você recebeu um erro como:
 RUN npm ci --only=production && npm cache clean --force" did not complete successfully: exit code: 1
 ```
 
+Ou erros relacionados ao `npm ci`:
+```bash
+npm error code EUSAGE
+npm error The `npm ci` command can only install with an existing package-lock.json
+```
+
+**Causas possíveis:**
+1. **Frontend usando `npm ci --only=production`**: O build do React/Vite precisa das devDependencies
+2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json`
+
 **Solução rápida:**
 ```bash
 # Use o script de correção
@@ -149,7 +159,9 @@ chmod +x fix-docker-build.sh
 ```
 
 Este script vai:
-- Corrigir o Dockerfile.prod do frontend
+- Corrigir o Dockerfile.prod do frontend:
+  - Remove `--only=production` se presente
+  - Substitui `npm ci` por `npm install` se `package-lock.json` não existir
 - Limpar cache e imagens antigas do Docker
 - Remover node_modules antigos
 - Reconstruir as imagens do zero

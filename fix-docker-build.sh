@@ -58,10 +58,14 @@ docker rmi $(docker images -f "dangling=true" -q) 2>/dev/null || true
 # Verificar se o Dockerfile.prod do frontend foi corrigido
 log "Verificando Dockerfile.prod do frontend..."
 if grep -q "npm ci --only=production" frontend/Dockerfile.prod; then
-    warn "Corrigindo Dockerfile.prod do frontend..."
+    warn "Corrigindo npm ci --only=production para npm ci..."
     sed -i 's/npm ci --only=production/npm ci/g' frontend/Dockerfile.prod
     sed -i 's/# Instalar dependências/# Instalar dependências (incluindo devDependencies para o build)/g' frontend/Dockerfile.prod
-    log "Dockerfile.prod do frontend corrigido"
+    log "Dockerfile.prod do frontend corrigido (--only=production removido)"
+elif grep -q "npm ci" frontend/Dockerfile.prod && [ ! -f "frontend/package-lock.json" ]; then
+    warn "Corrigindo npm ci para npm install (package-lock.json ausente)..."
+    sed -i 's/npm ci/npm install/g' frontend/Dockerfile.prod
+    log "Dockerfile.prod do frontend corrigido (npm ci → npm install)"
 else
     log "Dockerfile.prod do frontend já está correto"
 fi
