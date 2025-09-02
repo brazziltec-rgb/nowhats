@@ -135,6 +135,27 @@ Este script vai:
 - Definir permissões corretas
 - Verificar se todos os arquivos importantes foram copiados
 
+### ❌ Erro de Build do Docker (npm ci)
+Se você recebeu um erro como:
+```
+RUN npm ci --only=production && npm cache clean --force" did not complete successfully: exit code: 1
+```
+
+**Solução rápida:**
+```bash
+# Use o script de correção
+chmod +x fix-docker-build.sh
+./fix-docker-build.sh
+```
+
+Este script vai:
+- Corrigir o Dockerfile.prod do frontend
+- Limpar cache e imagens antigas do Docker
+- Remover node_modules antigos
+- Reconstruir as imagens do zero
+- Iniciar os containers corretamente
+- Verificar logs para possíveis problemas
+
 #### Erro de Permissão
 ```bash
 # Se aparecer erro de permissão do Docker
