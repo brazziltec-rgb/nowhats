@@ -30,7 +30,7 @@ error() {
 
 # Verificar se está rodando como root
 if [[ $EUID -ne 0 ]]; then
-   error "Este script deve ser executado como root (use sudo)"
+   error "Este script (install-part2.sh) deve ser executado como root.\nExecute: sudo bash install-part2.sh\nCertifique-se de ter executado ./install.sh primeiro como usuário normal."
 fi
 
 # Carregar variáveis do arquivo de configuração

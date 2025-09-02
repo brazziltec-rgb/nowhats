@@ -38,7 +38,7 @@ error() {
 
 # Verificar se está rodando como root
 if [[ $EUID -eq 0 ]]; then
-   error "Este script não deve ser executado como root. Execute como usuário normal com sudo."
+   error "Este script (install.sh) não deve ser executado como root.\nExecute como usuário normal: ./install.sh\nApós concluir, execute a parte 2 como root: sudo bash install-part2.sh"
 fi
 
 # Verificar Ubuntu 22.04
@@ -318,8 +318,16 @@ log "✅ Estrutura de diretórios criada"
 
 echo -e "${GREEN}=== INSTALAÇÃO BÁSICA CONCLUÍDA ===${NC}"
 echo "Configurações salvas em /opt/nowhats/.install_config"
-echo "Execute agora: sudo bash install-part2.sh"
+echo ""
+echo -e "${YELLOW}📋 PRÓXIMO PASSO:${NC}"
+echo -e "${BLUE}Execute a parte 2 como ROOT:${NC}"
+echo -e "${GREEN}sudo bash install-part2.sh${NC}"
+echo ""
+echo -e "${YELLOW}⚠️  IMPORTANTE:${NC}"
+echo "- A parte 2 DEVE ser executada com sudo (como root)"
+echo "- NÃO execute: ./install-part2.sh (sem sudo)"
+echo ""
 echo "Pressione ENTER para continuar ou Ctrl+C para cancelar"
 read -p ""
 
-log "🎯 Instalação da parte 1 concluída. Execute a parte 2 para continuar..."
+log "🎯 Instalação da parte 1 concluída. Execute: sudo bash install-part2.sh"
