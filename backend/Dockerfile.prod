@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Instalar dependências do sistema
 RUN apk add --no-cache \
+    git \
     python3 \
     make \
     g++ \

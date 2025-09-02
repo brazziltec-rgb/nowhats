@@ -80,6 +80,16 @@ else
     log "✓ Dockerfile.prod do backend já está correto"
 fi
 
+# Verificar se git está instalado no Dockerfile do backend
+log "Verificando instalação do git no backend..."
+if ! grep -q "git" backend/Dockerfile.prod; then
+    warn "Adicionando git às dependências do backend..."
+    sed -i '/RUN apk add --no-cache \\/a\    git \\' backend/Dockerfile.prod
+    log "✓ Git adicionado ao Dockerfile.prod do backend"
+else
+    log "✓ Git já está presente no Dockerfile.prod do backend"
+fi
+
 # Verificar se os arquivos package.json existem
 log "Verificando arquivos de dependências..."
 if [[ ! -f "frontend/package.json" ]]; then
