@@ -165,6 +165,7 @@ Este script vai:
   - Remove `--only=production` se presente no frontend
   - Substitui `npm ci` por `npm install` se `package-lock.json` não existir
   - Adiciona git às dependências do sistema no backend (se ausente)
+  - Adiciona `--legacy-peer-deps` ao frontend para resolver conflitos de dependências
 - Limpar cache e imagens antigas do Docker
 - Remover node_modules antigos
 - Reconstruir as imagens do zero
