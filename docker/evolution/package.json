@@ -1,0 +1,29 @@
+{
+  "name": "evolution-api",
+  "version": "1.0.0",
+  "description": "Evolution API for WhatsApp",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:prod": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.0",
+    "winston": "^3.10.0",
+    "multer": "^1.4.4",
+    "qrcode": "^1.5.3"
+  },
+  "keywords": [
+    "whatsapp",
+    "api",
+    "evolution",
+    "nodejs"
+  ],
+  "author": "NoWhats Team",
+  "license": "MIT"
+}

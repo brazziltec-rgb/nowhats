@@ -1,0 +1,203 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # BANCO DE DADOS POSTGRESQL
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: nowhats_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-atendezap}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-atendezap}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # BACKEND NODE.JS
+  # =============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: nowhats_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-atendezap}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${FRONTEND_URL}
+      BAILEYS_API_URL: http://baileys-api:3001
+      EVOLUTION_API_URL: http://evolution-api:8080
+      WEBJS_API_URL: http://webjs-api:3003
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/sessions:/app/sessions
+      - ./data/logs:/app/logs
+    ports:
+      - "127.0.0.1:3006:3006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # FRONTEND REACT
+  # =============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${BACKEND_URL}
+    container_name: nowhats_frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:80"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # API BAILEYS
+  # =============================================================================
+  baileys-api:
+    build:
+      context: ./docker/baileys
+      dockerfile: Dockerfile
+    container_name: nowhats_baileys
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    volumes:
+      - ./data/sessions/baileys:/app/sessions
+      - ./data/logs/baileys:/app/logs
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # API EVOLUTION
+  # =============================================================================
+  evolution-api:
+    build:
+      context: ./docker/evolution
+      dockerfile: Dockerfile
+    container_name: nowhats_evolution
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      NODE_ENV: production
+      DATABASE_ENABLED: false
+      REDIS_ENABLED: false
+      RABBITMQ_ENABLED: false
+      WEBSOCKET_ENABLED: true
+      WA_BUSINESS_TOKEN_WEBHOOK: false
+      WA_BUSINESS_URL: false
+      WA_BUSINESS_VERSION: v18.0
+      WA_BUSINESS_LANGUAGE: pt_BR
+    volumes:
+      - ./data/sessions/evolution:/evolution/instances
+      - ./data/logs/evolution:/evolution/logs
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # API WEB.JS
+  # =============================================================================
+  webjs-api:
+    build:
+      context: ./docker/webjs
+      dockerfile: Dockerfile
+    container_name: nowhats_webjs
+    restart: unless-stopped
+    environment:
+      PORT: 3003
+      NODE_ENV: production
+    volumes:
+      - ./data/sessions/webjs:/app/sessions
+      - ./data/logs/webjs:/app/logs
+    ports:
+      - "127.0.0.1:3003:3003"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # REDIS (OPCIONAL - PARA CACHE E SESSÕES)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: nowhats_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - nowhats_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  nowhats_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

@@ -1,0 +1,120 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { 
+  Home,
+  MessageSquare, 
+  Users, 
+  Settings, 
+  Bot, 
+  Send, 
+  Workflow,
+  Rss,
+  Moon,
+  Sun,
+  ChevronsLeft,
+  ChevronsRight,
+  LogOut
+} from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
+import { supabase } from '../../lib/supabaseClient';
+
+const Sidebar: React.FC = () => {
+  const { sidebarOpen, toggleSidebar, darkMode, toggleDarkMode, currentAgent } = useAppStore();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const menuItems = [
+    { id: 'home', path: '/home', label: 'Home', icon: Home },
+    { id: 'chat', path: '/chat', label: 'Atendimento', icon: MessageSquare },
+    { id: 'contacts', path: '/contacts', label: 'Contatos', icon: Users },
+    { id: 'bulk', path: '/bulk', label: 'Campanhas', icon: Send },
+    { id: 'chatbot', path: '/chatbot', label: 'Chatbot', icon: Bot },
+    { id: 'kanban', path: '/kanban', label: 'Kanban', icon: Workflow },
+    { id: 'channels', path: '/channels', label: 'Canais', icon: Rss },
+    { id: 'settings', path: '/settings', label: 'Configurações', icon: Settings }
+  ];
+
+  return (
+    <div className={`${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
+      {/* Header */}
+      <div className="p-4 h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
+        {sidebarOpen ? (
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            AtendeZap
+          </h1>
+        ) : (
+          <Bot size={28} className="text-whatsapp-green" />
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4">
+        <ul className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.id}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-whatsapp-green text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    } ${!sidebarOpen ? 'justify-center' : ''}`
+                  }
+                  title={!sidebarOpen ? item.label : undefined}
+                >
+                  <Icon size={20} />
+                  {sidebarOpen && (
+                    <span className="font-medium">{item.label}</span>
+                  )}
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+        <button
+          onClick={toggleDarkMode}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
+          title={!sidebarOpen ? (darkMode ? 'Modo Claro' : 'Modo Escuro') : undefined}
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {sidebarOpen && (
+            <span className="font-medium">
+              {darkMode ? 'Modo Claro' : 'Modo Escuro'}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
+          title="Sair"
+        >
+          <LogOut size={20} />
+          {sidebarOpen && <span className="font-medium">Sair</span>}
+        </button>
+        <button
+          onClick={toggleSidebar}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
+          title={!sidebarOpen ? 'Expandir' : 'Recolher'}
+        >
+          {sidebarOpen ? <ChevronsLeft size={20} /> : <ChevronsRight size={20} />}
+          {sidebarOpen && (
+            <span className="font-medium">
+              Recolher
+            </span>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;

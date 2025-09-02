@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nowhats-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: atendezap
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - nowhats-network
+
+  # Backend principal NoWhats
+  backend:
+    build:
+      context: .
+      dockerfile: docker/baileys/Dockerfile
+    container_name: nowhats-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=atendezap
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-key-change-this-in-production
+      - JWT_EXPIRES_IN=7d
+      - SESSIONS_PATH=/app/sessions
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./sessions:/app/sessions
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+    networks:
+      - nowhats-network
+
+  # Evolution API
+  evolution-api:
+    build:
+      context: .
+      dockerfile: docker/evolution/Dockerfile
+    container_name: nowhats-evolution
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SERVER_PORT=8080
+      - CORS_ORIGIN=*
+      - CORS_METHODS=GET,POST,PUT,DELETE
+      - CORS_CREDENTIALS=true
+      - LOG_LEVEL=ERROR
+      - LOG_COLOR=false
+      - LOG_BAILEYS=false
+      - DEL_INSTANCE=false
+      - PROVIDER_ENABLED=false
+      - PROVIDER_HOST=127.0.0.1
+      - PROVIDER_PORT=5672
+      - PROVIDER_USERNAME=guest
+      - PROVIDER_PASSWORD=guest
+      - REDIS_ENABLED=false
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - WEBSOCKET_ENABLED=false
+      - WEBSOCKET_GLOBAL_EVENTS=false
+      - CONFIG_SESSION_PHONE_CLIENT=NoWhats
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+      - QRCODE_LIMIT=30
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-evolution-api-key}
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      - LANGUAGE=pt-BR
+    ports:
+      - "8081:8080"
+    volumes:
+      - evolution_instances:/app/instances
+      - evolution_store:/app/store
+    networks:
+      - nowhats-network
+
+  # Web.js API
+  webjs-api:
+    build:
+      context: .
+      dockerfile: docker/webjs/Dockerfile
+    container_name: nowhats-webjs
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - WEBJS_API_KEY=${WEBJS_API_KEY:-webjs-api-key}
+    ports:
+      - "3002:3002"
+    volumes:
+      - webjs_sessions:/app/sessions
+      - webjs_uploads:/app/uploads
+    networks:
+      - nowhats-network
+
+  # Opcional: pgAdmin para gerenciar o banco
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nowhats-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nowhats.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - nowhats-network
+
+volumes:
+  postgres_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+  webjs_sessions:
+    driver: local
+  webjs_uploads:
+    driver: local
+
+networks:
+  nowhats-network:
+    driver: bridge

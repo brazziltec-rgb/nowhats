@@ -1,0 +1,74 @@
+# =============================================================================
+# DOCKERFILE DE PRODUÇÃO - BACKEND NODE.JS
+# =============================================================================
+
+# Estágio 1: Build
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Instalar dependências do sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm ci --only=production && npm cache clean --force
+
+# Estágio 2: Produção
+FROM node:18-alpine AS production
+
+# Criar usuário não-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nowhats -u 1001
+
+WORKDIR /app
+
+# Instalar dependências do sistema necessárias para produção
+RUN apk add --no-cache \
+    curl \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype
+
+# Copiar dependências do estágio de build
+COPY --from=builder --chown=nowhats:nodejs /app/node_modules ./node_modules
+
+# Copiar código da aplicação
+COPY --chown=nowhats:nodejs . .
+
+# Criar diretórios necessários
+RUN mkdir -p uploads sessions logs data && \
+    chown -R nowhats:nodejs uploads sessions logs data
+
+# Expor porta
+EXPOSE 3006
+
+# Mudar para usuário não-root
+USER nowhats
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3006/health || exit 1
+
+# Comando de inicialização
+CMD ["node", "server.js"]
