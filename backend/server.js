@@ -137,20 +137,42 @@ const startServer = async () => {
         // Criar diretórios necessários
         await createDirectories();
 
-        // Testar conexão com banco de dados
-        logger.info('Testando conexão com banco de dados SQLite...');
-        await db.query('SELECT NOW() as current_time');
-        logger.info('Conexão com banco de dados SQLite estabelecida');
+        // Testar conexão com banco de dados com retry
+        logger.info('Testando conexão com banco de dados PostgreSQL...');
+        let retries = 0;
+        const maxRetries = 10;
+        const baseDelay = 2000; // 2 segundos
+        
+        while (retries < maxRetries) {
+            try {
+                await db.query('SELECT NOW() as current_time');
+                logger.info('Conexão com banco de dados PostgreSQL estabelecida');
+                break;
+            } catch (error) {
+                retries++;
+                const delay = baseDelay * Math.pow(2, retries - 1); // Backoff exponencial
+                logger.warn(`Tentativa ${retries}/${maxRetries} falhou: ${error.message}`);
+                
+                if (retries >= maxRetries) {
+                    logger.error('Máximo de tentativas de conexão excedido');
+                    throw error;
+                }
+                
+                logger.info(`Aguardando ${delay}ms antes da próxima tentativa...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        
         logger.info('Continuando inicialização do servidor...');
 
-        // Executar migrações SQLite se necessário
+        // Executar migrações PostgreSQL se necessário
         if (process.env.AUTO_MIGRATE === 'true') {
-            logger.info('Executando migrações SQLite automáticas...');
+            logger.info('Executando migrações PostgreSQL automáticas...');
             try {
-                execSync('node database/migrate-sqlite.js run', { cwd: __dirname });
-                logger.info('Migrações SQLite executadas com sucesso');
+                execSync('node database/migrate.js run', { cwd: __dirname });
+                logger.info('Migrações PostgreSQL executadas com sucesso');
             } catch (error) {
-                logger.warn(`Erro nas migrações SQLite: ${error.message}`);
+                logger.warn(`Erro nas migrações PostgreSQL: ${error.message}`);
             }
         }
 
@@ -185,7 +207,7 @@ const startServer = async () => {
                     
                     // Fechar conexão com banco de dados
                     logger.info('Fechando conexão com banco de dados...');
-                    await db.closeDb();
+                    await db.closePool();
                     
                     logger.info('Shutdown concluído com sucesso');
                     process.exit(0);

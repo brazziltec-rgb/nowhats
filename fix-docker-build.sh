@@ -164,6 +164,97 @@ docker-compose -f docker-compose.prod.yml logs --tail=10 frontend
 echo -e "${BLUE}Logs do Backend:${NC}"
 docker-compose -f docker-compose.prod.yml logs --tail=10 backend
 
+# Corrigir configuração do server.js para PostgreSQL
+log "Verificando configuração do server.js..."
+if [ -f "backend/server.js" ]; then
+    # Corrigir logs SQLite para PostgreSQL
+    if grep -q "SQLite" backend/server.js; then
+        log "Corrigindo configuração do banco de dados no server.js..."
+        sed -i 's/SQLite/PostgreSQL/g' backend/server.js
+        sed -i 's/migrate-sqlite.js/migrate.js/g' backend/server.js
+        sed -i 's/closeDb()/closePool()/g' backend/server.js
+        log "Configuração do server.js corrigida"
+    fi
+fi
+
+# Remover atributo version obsoleto do docker-compose.prod.yml
+log "Verificando docker-compose.prod.yml..."
+if [ -f "docker-compose.prod.yml" ]; then
+    if grep -q "version:" docker-compose.prod.yml; then
+        log "Removendo atributo version obsoleto..."
+        sed -i '/^version:/d' docker-compose.prod.yml
+        sed -i '/^$/N;/^\n$/d' docker-compose.prod.yml  # Remove linhas vazias extras
+        log "Atributo version removido"
+    fi
+fi
+
+# Verificar e criar arquivo .env com variáveis necessárias
+log "Verificando arquivo .env..."
+if [ ! -f ".env" ] || ! grep -q "DB_PASSWORD" .env; then
+    log "Criando/atualizando arquivo .env com variáveis necessárias..."
+    
+    # Preservar variáveis existentes do Supabase se existirem
+    SUPABASE_URL=""
+    SUPABASE_KEY=""
+    if [ -f ".env" ]; then
+        SUPABASE_URL=$(grep "VITE_SUPABASE_URL" .env 2>/dev/null || echo "")
+        SUPABASE_KEY=$(grep "VITE_SUPABASE_ANON_KEY" .env 2>/dev/null || echo "")
+    fi
+    
+    # Criar novo arquivo .env
+    cat > .env << 'EOF'
+# =============================================================================
+# CONFIGURAÇÕES GERAIS
+# =============================================================================
+NODE_ENV=production
+PORT=3006
+FRONTEND_PORT=3000
+
+# =============================================================================
+# BANCO DE DADOS POSTGRESQL
+# =============================================================================
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=atendezap
+DB_USER=postgres
+DB_PASSWORD=postgres123
+DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/atendezap
+
+# =============================================================================
+# AUTENTICAÇÃO JWT
+# =============================================================================
+JWT_SECRET=nowhats_jwt_secret_key_2025_production
+JWT_EXPIRES_IN=7d
+
+# =============================================================================
+# CORS E FRONTEND
+# =============================================================================
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+
+# =============================================================================
+# APIS WHATSAPP
+# =============================================================================
+BAILEYS_API_URL=http://baileys-api:3001
+EVOLUTION_API_URL=http://evolution-api:8080
+WEBJS_API_URL=http://webjs-api:3003
+
+# =============================================================================
+# SUPABASE (OPCIONAL)
+# =============================================================================
+EOF
+    
+    # Adicionar variáveis do Supabase se existirem
+    if [ -n "$SUPABASE_URL" ]; then
+        echo "$SUPABASE_URL" >> .env
+    fi
+    if [ -n "$SUPABASE_KEY" ]; then
+        echo "$SUPABASE_KEY" >> .env
+    fi
+    
+    log "Arquivo .env criado/atualizado com sucesso"
+fi
+
 log "Correção de build finalizada!"
 echo
 echo -e "${BLUE}Status dos containers:${NC}"

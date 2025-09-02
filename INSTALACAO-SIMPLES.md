@@ -152,6 +152,9 @@ npm error The `npm ci` command can only install with an existing package-lock.js
 2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json` (pode afetar frontend e/ou backend)
 3. **Git não instalado**: Algumas dependências npm requerem git para instalação
 4. **Conflitos de dependências peer**: Incompatibilidade entre versões de dependências (ex: React 19 com bibliotecas que suportam apenas React 16-18)
+5. **Configuração incorreta do banco de dados**: O backend pode estar configurado para SQLite quando deveria usar PostgreSQL em produção
+6. **Atributo version obsoleto**: O docker-compose.yml pode conter o atributo `version` que é obsoleto nas versões mais recentes do Docker Compose
+7. **Arquivo .env ausente ou incompleto**: O arquivo `.env` pode não existir ou não conter as variáveis essenciais do PostgreSQL (DB_PASSWORD, JWT_SECRET, etc.), causando falha na conexão com o banco de dados
 
 **Solução rápida:**
 ```bash
@@ -166,6 +169,9 @@ Este script vai:
   - Substitui `npm ci` por `npm install` se `package-lock.json` não existir
   - Adiciona git às dependências do sistema no backend (se ausente)
   - Adiciona `--legacy-peer-deps` ao frontend para resolver conflitos de dependências
+  - Corrige configuração do banco de dados no server.js (SQLite → PostgreSQL)
+   - Remove atributo `version` obsoleto do docker-compose.prod.yml
+   - Verifica e cria arquivo `.env` com todas as variáveis necessárias
 - Limpar cache e imagens antigas do Docker
 - Remover node_modules antigos
 - Reconstruir as imagens do zero
