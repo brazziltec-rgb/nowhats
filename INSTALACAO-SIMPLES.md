@@ -149,7 +149,7 @@ npm error The `npm ci` command can only install with an existing package-lock.js
 
 **Causas possíveis:**
 1. **Frontend usando `npm ci --only=production`**: O build do React/Vite precisa das devDependencies
-2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json`
+2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json` (pode afetar frontend e/ou backend)
 
 **Solução rápida:**
 ```bash
@@ -159,8 +159,8 @@ chmod +x fix-docker-build.sh
 ```
 
 Este script vai:
-- Corrigir o Dockerfile.prod do frontend:
-  - Remove `--only=production` se presente
+- Corrigir os Dockerfiles do frontend e backend:
+  - Remove `--only=production` se presente no frontend
   - Substitui `npm ci` por `npm install` se `package-lock.json` não existir
 - Limpar cache e imagens antigas do Docker
 - Remover node_modules antigos

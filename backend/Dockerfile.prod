@@ -26,7 +26,7 @@ RUN apk add --no-cache \
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm ci --only=production && npm cache clean --force
+    RUN npm install --only=production && npm cache clean --force
 
 # Estágio 2: Produção
 FROM node:18-alpine AS production

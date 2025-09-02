@@ -67,7 +67,17 @@ elif grep -q "npm ci" frontend/Dockerfile.prod && [ ! -f "frontend/package-lock.
     sed -i 's/npm ci/npm install/g' frontend/Dockerfile.prod
     log "Dockerfile.prod do frontend corrigido (npm ci → npm install)"
 else
-    log "Dockerfile.prod do frontend já está correto"
+    log "✓ Dockerfile.prod do frontend já está correto"
+fi
+
+# Corrigir Dockerfile.prod do backend se necessário
+log "Verificando Dockerfile.prod do backend..."
+if grep -q "npm ci" backend/Dockerfile.prod && [ ! -f "backend/package-lock.json" ]; then
+    warn "Corrigindo npm ci para npm install no backend (package-lock.json ausente)..."
+    sed -i 's/npm ci/npm install/g' backend/Dockerfile.prod
+    log "✓ Dockerfile.prod do backend corrigido (npm ci → npm install)"
+else
+    log "✓ Dockerfile.prod do backend já está correto"
 fi
 
 # Verificar se os arquivos package.json existem
