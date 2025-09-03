@@ -92,18 +92,62 @@ if [[ ! -f ".env" ]]; then
         log "Arquivo .env criado a partir do .env.example"
         
         # Gerar senhas automáticas
-        DB_PASS=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-16)
-        JWT_SECRET=$(openssl rand -base64 32 | tr -d "=+/")
-        REDIS_PASS=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-16)
+        DB_PASS=$(openssl rand -base64 16 2>/dev/null | tr -d "=+/" | cut -c1-16 || echo "nowhats$(date +%s)")
+        JWT_SECRET=$(openssl rand -base64 32 2>/dev/null | tr -d "=+/" || echo "jwt-secret-$(date +%s)")
+        REDIS_PASS=$(openssl rand -base64 16 2>/dev/null | tr -d "=+/" | cut -c1-16 || echo "redis$(date +%s)")
         
         # Substituir no .env
-        sed -i "s/ALTERE_ESTA_SENHA/$DB_PASS/g" .env
-        sed -i "s/GERE_UMA_CHAVE_SECRETA_FORTE_AQUI/$JWT_SECRET/g" .env
-        sed -i "s/ALTERE_ESTA_SENHA_REDIS/$REDIS_PASS/g" .env
+        sed -i "s/sua_senha_super_segura_aqui/$DB_PASS/g" .env 2>/dev/null || true
+        sed -i "s/sua_chave_jwt_super_secreta_aqui/$JWT_SECRET/g" .env 2>/dev/null || true
+        sed -i "s/ALTERE_ESTA_SENHA_REDIS/$REDIS_PASS/g" .env 2>/dev/null || true
         
         log "Senhas geradas automaticamente no .env"
     else
-        error "Arquivo .env.example não encontrado!"
+        warn "Arquivo .env.example não encontrado. Criando .env básico..."
+        cat > .env << 'EOF'
+# Configuração Básica NoWhats
+NODE_ENV=production
+PORT=3006
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:3006
+
+# Database
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=nowhats
+DB_USER=nowhats
+DB_PASSWORD=nowhats123
+
+# JWT
+JWT_SECRET=minha-chave-secreta-jwt-2024
+JWT_EXPIRES_IN=7d
+
+# CORS
+CORS_ORIGIN=http://localhost:3000
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=redis123
+
+# APIs WhatsApp
+BAILEYS_PORT=3001
+EVOLUTION_PORT=3002
+WEBJS_PORT=3003
+
+# Baileys
+BAILEYS_API_KEY=baileys-api-key-2024
+
+# Evolution
+EVOLUTION_API_KEY=evolution-api-key-2024
+EVOLUTION_AUTHENTICATION_TYPE=apikey
+EVOLUTION_AUTHENTICATION_API_KEY=evolution-global-key-2024
+EVOLUTION_AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+
+# Web.js
+WEBJS_API_KEY=webjs-api-key-2024
+EOF
+        log "Arquivo .env básico criado"
     fi
 else
     log "Arquivo .env já existe"

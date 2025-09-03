@@ -31,9 +31,27 @@ echo "🔨 Instalando Docker Compose..."
 $SUDO_CMD curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 $SUDO_CMD chmod +x /usr/local/bin/docker-compose
 
-# Configurar .env básico
+# Configurar .env se não existir
 echo "⚙️ Configurando .env..."
-cat > .env << 'EOF'
+if [[ ! -f ".env" ]]; then
+    if [[ -f ".env.example" ]]; then
+        cp .env.example .env
+        echo "Arquivo .env criado a partir do .env.example"
+        
+        # Gerar senhas automáticas
+        DB_PASS=$(openssl rand -base64 16 2>/dev/null | tr -d "=+/" | cut -c1-16 || echo "nowhats$(date +%s)")
+        JWT_SECRET=$(openssl rand -base64 32 2>/dev/null | tr -d "=+/" || echo "jwt-secret-$(date +%s)")
+        REDIS_PASS=$(openssl rand -base64 16 2>/dev/null | tr -d "=+/" | cut -c1-16 || echo "redis$(date +%s)")
+        
+        # Substituir no .env
+        sed -i "s/sua_senha_super_segura_aqui/$DB_PASS/g" .env 2>/dev/null || true
+        sed -i "s/sua_chave_jwt_super_secreta_aqui/$JWT_SECRET/g" .env 2>/dev/null || true
+        sed -i "s/ALTERE_ESTA_SENHA_REDIS/$REDIS_PASS/g" .env 2>/dev/null || true
+        
+        echo "Senhas geradas automaticamente no .env"
+    else
+        echo "Arquivo .env.example não encontrado. Criando .env básico..."
+        cat > .env << 'EOF'
 # Configuração Básica NoWhats
 NODE_ENV=production
 PORT=3006
@@ -76,6 +94,10 @@ EVOLUTION_AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
 # Web.js
 WEBJS_API_KEY=webjs-api-key-2024
 EOF
+    fi
+else
+    echo "Arquivo .env já existe"
+fi
 
 # Criar diretórios
 echo "📁 Criando diretórios..."
