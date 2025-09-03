@@ -1,8 +1,30 @@
-# NoWhats - Instalação Simplificada
+# NoWhats - Instalação Simples
 
-## 🚀 Instalação em Um Único Comando
+## 🚀 Instalação Ultra Rápida (Recomendada)
 
-Este método substitui a instalação em duas partes por um processo único e automatizado.
+### Opção 1: Script Ultra Simples
+```bash
+# Executar diretamente (funciona para qualquer usuário)
+chmod +x quick-install.sh
+./quick-install.sh
+```
+
+### Opção 2: Instalação Completa
+```bash
+# Para instalação com mais opções de configuração
+chmod +x install-ultra-simple.sh
+./install-ultra-simple.sh
+```
+
+## ✅ Após a Instalação
+
+### Acessar a Aplicação
+- **Frontend**: http://localhost:3000
+- **Backend**: http://localhost:3006
+- **APIs WhatsApp**: 
+  - Baileys: http://localhost:3001
+  - Evolution: http://localhost:3002
+  - Web.js: http://localhost:3003
 
 ### Pré-requisitos
 
