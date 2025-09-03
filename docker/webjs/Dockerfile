@@ -28,13 +28,13 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S webjs -u 1001 -G nodejs
 
 # Copiar package.json para instalar whatsapp-web.js
-COPY docker/webjs/package.json ./
+COPY package.json ./
 
 # Instalar dependências
 RUN npm install
 
 # Copiar código da aplicação Web.js
-COPY docker/webjs/server.js ./
+COPY server.js ./
 
 # Criar diretórios necessários
 RUN mkdir -p /app/sessions /app/uploads /app/logs

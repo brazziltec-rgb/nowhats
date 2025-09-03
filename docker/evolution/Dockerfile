@@ -25,13 +25,13 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 WORKDIR /app
 
 # Copiar package.json da Evolution API
-COPY docker/evolution/package.json ./
+COPY package.json ./
 
 # Instalar dependências
 RUN npm install --production
 
 # Copiar código da aplicação
-COPY docker/evolution/server.js ./
+COPY server.js ./
 
 # Criar usuário não-root
 RUN addgroup -g 1001 -S nodejs && \
