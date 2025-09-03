@@ -13,7 +13,8 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    git
+    git \
+    curl
 
 # Definir variáveis de ambiente para Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
