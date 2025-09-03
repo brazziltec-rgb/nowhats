@@ -35,7 +35,8 @@ RUN npm install && npm cache clean --force
 
 # Voltar para o diretório raiz e copiar código da aplicação
 WORKDIR /app
-COPY . .
+COPY backend ./backend/
+COPY docker/baileys ./
 
 # Remover arquivo .env local para usar variáveis de ambiente do Docker
 RUN rm -f /app/backend/.env

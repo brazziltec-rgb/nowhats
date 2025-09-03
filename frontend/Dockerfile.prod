@@ -42,15 +42,13 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 RUN addgroup -g 1001 -S nginx-user
 RUN adduser -S nginx-user -u 1001 -G nginx-user
 
-# Ajustar permissões
-RUN chown -R nginx-user:nginx-user /usr/share/nginx/html && \
-    chown -R nginx-user:nginx-user /var/cache/nginx && \
-    chown -R nginx-user:nginx-user /var/log/nginx && \
-    chown -R nginx-user:nginx-user /etc/nginx/conf.d
-
-# Criar diretório para PID do nginx
-RUN mkdir -p /var/run/nginx && \
-    chown -R nginx-user:nginx-user /var/run/nginx
+# Criar diretórios necessários e ajustar permissões
+RUN mkdir -p /var/run/nginx /var/cache/nginx/client_temp /run && \
+    chown -R nginx-user:nginx-user /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /var/run/nginx /run && \
+    chmod -R 755 /var/cache/nginx /var/log/nginx /var/run/nginx /run && \
+    touch /run/nginx.pid && \
+    chown nginx-user:nginx-user /run/nginx.pid && \
+    chmod 644 /run/nginx.pid
 
 # Expor porta
 EXPOSE 80

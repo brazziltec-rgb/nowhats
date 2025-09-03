@@ -139,26 +139,34 @@ const startServer = async () => {
 
         // Testar conexão com banco de dados com retry
         logger.info('Testando conexão com banco de dados PostgreSQL...');
+        logger.info(`Configuração de conexão: Host=${process.env.DB_HOST}, Port=${process.env.DB_PORT}, Database=${process.env.DB_NAME}, User=${process.env.DB_USER}`);
+        
         let retries = 0;
-        const maxRetries = 10;
-        const baseDelay = 2000; // 2 segundos
+        const maxRetries = 15; // Aumentado para 15 tentativas
+        const baseDelay = 3000; // Aumentado para 3 segundos
         
         while (retries < maxRetries) {
             try {
+                logger.info(`Tentativa ${retries + 1}/${maxRetries} de conexão com PostgreSQL...`);
                 await db.query('SELECT NOW() as current_time');
-                logger.info('Conexão com banco de dados PostgreSQL estabelecida');
+                logger.info('✅ Conexão com banco de dados PostgreSQL estabelecida com sucesso!');
                 break;
             } catch (error) {
                 retries++;
-                const delay = baseDelay * Math.pow(2, retries - 1); // Backoff exponencial
-                logger.warn(`Tentativa ${retries}/${maxRetries} falhou: ${error.message}`);
+                const delay = Math.min(baseDelay * Math.pow(1.5, retries - 1), 30000); // Máximo 30s
+                logger.error(`❌ Tentativa ${retries}/${maxRetries} falhou:`);
+                logger.error(`   Erro: ${error.message}`);
+                logger.error(`   Código: ${error.code}`);
+                logger.error(`   Host tentado: ${error.hostname || 'N/A'}`);
+                logger.error(`   Porta tentada: ${error.port || 'N/A'}`);
                 
                 if (retries >= maxRetries) {
-                    logger.error('Máximo de tentativas de conexão excedido');
+                    logger.error('🚨 Máximo de tentativas de conexão excedido!');
+                    logger.error('Verifique se o PostgreSQL está rodando e acessível na rede Docker.');
                     throw error;
                 }
                 
-                logger.info(`Aguardando ${delay}ms antes da próxima tentativa...`);
+                logger.info(`⏳ Aguardando ${Math.round(delay/1000)}s antes da próxima tentativa...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }

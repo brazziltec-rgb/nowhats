@@ -147,6 +147,16 @@ npm error code EUSAGE
 npm error The `npm ci` command can only install with an existing package-lock.json
 ```
 
+### 🔍 Principais Causas de Erro
+
+1. **Permissões de arquivo**: Scripts sem permissão de execução
+2. **Dependências ausentes**: Docker ou Docker Compose não instalados
+3. **Portas ocupadas**: Conflito com outros serviços
+4. **Configuração incorreta do banco**: Backend configurado para SQLite em vez de PostgreSQL
+5. **Atributo version obsoleto**: Docker Compose com versão antiga no arquivo de configuração
+6. **Arquivo .env incompleto**: Falta de variáveis essenciais como DB_PASSWORD e JWT_SECRET
+7. **Problemas de DNS/Rede**: Falha na resolução de nomes entre containers Docker
+
 **Causas possíveis:**
 1. **Frontend usando `npm ci --only=production`**: O build do React/Vite precisa das devDependencies
 2. **Ausência do `package-lock.json`**: O `npm ci` requer este arquivo, mas o projeto pode usar apenas `package.json` (pode afetar frontend e/ou backend)
@@ -172,6 +182,8 @@ Este script vai:
   - Corrige configuração do banco de dados no server.js (SQLite → PostgreSQL)
    - Remove atributo `version` obsoleto do docker-compose.prod.yml
    - Verifica e cria arquivo `.env` com todas as variáveis necessárias
+   - Configura DNS públicos no backend para resolver problemas de rede
+   - Adiciona logs detalhados para diagnosticar problemas de conectividade
 - Limpar cache e imagens antigas do Docker
 - Remover node_modules antigos
 - Reconstruir as imagens do zero

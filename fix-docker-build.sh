@@ -186,6 +186,20 @@ if [ -f "docker-compose.prod.yml" ]; then
         sed -i '/^$/N;/^\n$/d' docker-compose.prod.yml  # Remove linhas vazias extras
         log "Atributo version removido"
     fi
+    
+    # Adicionar configuração DNS no backend se não existir
+    if ! grep -q "dns:" docker-compose.prod.yml; then
+        # Encontrar a linha do backend e adicionar DNS após restart
+        sed -i '/container_name: nowhats_backend/,/restart: unless-stopped/ {
+            /restart: unless-stopped/a\
+        dns:\
+          - 8.8.8.8\
+          - 8.8.4.4
+        }' docker-compose.prod.yml
+        log "✅ Configuração DNS adicionada ao backend"
+    else
+        log "ℹ️  Configuração DNS já existe no backend"
+    fi
 fi
 
 # Verificar e criar arquivo .env com variáveis necessárias

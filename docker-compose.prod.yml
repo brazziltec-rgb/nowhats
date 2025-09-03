@@ -14,8 +14,9 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./backend/database/migrations:/docker-entrypoint-initdb.d
-    ports:
-      - "127.0.0.1:5432:5432"
+    # Porta removida - PostgreSQL acessível apenas internamente via rede Docker
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     networks:
       - nowhats_network
     healthcheck:
@@ -33,6 +34,9 @@ services:
       dockerfile: Dockerfile.prod
     container_name: nowhats_backend
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       NODE_ENV: production
       PORT: 3006
@@ -89,8 +93,8 @@ services:
   # =============================================================================
   baileys-api:
     build:
-      context: ./docker/baileys
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/baileys/Dockerfile
     container_name: nowhats_baileys
     restart: unless-stopped
     environment:
