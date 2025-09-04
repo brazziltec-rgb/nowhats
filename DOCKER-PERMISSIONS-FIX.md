@@ -1,4 +1,6 @@
-# Correção de Problemas de Permissões Docker
+# Soluções para Problemas de Docker
+
+Este documento contém soluções para resolver problemas comuns do Docker no Ubuntu e Windows.
 
 ## Problema Comum
 
@@ -126,6 +128,35 @@ docker-compose -f docker-compose.prod.yml logs
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
+## Soluções para Windows
+
+### Problema: Docker Desktop não está rodando
+
+**Sintoma**: Erro `error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.51/containers/json"`
+
+**Solução Automática**:
+```powershell
+# Execute o script de diagnóstico
+.\fix-docker-windows.ps1
+```
+
+**Solução Manual**:
+1. Abra o Docker Desktop manualmente
+2. Aguarde a inicialização completa (ícone na bandeja do sistema)
+3. Execute os containers:
+```powershell
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Script de Diagnóstico Windows
+
+O arquivo `fix-docker-windows.ps1` oferece:
+- ✅ Verificação automática do Docker Desktop
+- 🚀 Inicialização automática se necessário
+- 📊 Diagnóstico completo dos containers
+- 🔧 Correção automática de problemas comuns
+- 📋 Relatório detalhado do status
+
 ## URLs de Acesso
 
 Após correção bem-sucedida:
@@ -145,6 +176,7 @@ Após correção bem-sucedida:
 
 ## Logs Úteis
 
+### Linux/Ubuntu
 ```bash
 # Logs do Docker
 sudo journalctl -u docker --no-pager -n 20
@@ -154,4 +186,17 @@ docker-compose -f docker-compose.prod.yml logs --tail=50
 
 # Logs de um container específico
 docker logs nowhats_backend --tail=20
+```
+
+### Windows (PowerShell)
+```powershell
+# Ver logs de todos os containers
+docker-compose -f docker-compose.prod.yml logs
+
+# Ver logs de um container específico
+docker-compose -f docker-compose.prod.yml logs postgres
+docker-compose -f docker-compose.prod.yml logs backend
+
+# Seguir logs em tempo real
+docker-compose -f docker-compose.prod.yml logs -f
 ```
