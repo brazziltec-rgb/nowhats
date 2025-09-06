@@ -11,9 +11,51 @@ permission denied while trying to connect to the Docker daemon socket at unix://
 
 Isso significa que seu usuário não tem permissão para acessar o Docker daemon.
 
-## Soluções Disponíveis
+## Soluções para Ubuntu
 
-### 1. Correção Automática Simples (Recomendada)
+### 1. 🔍 Diagnóstico Completo (NOVO - Recomendado)
+
+**Para identificar exatamente qual container está falhando:**
+
+```bash
+# Torna o script executável
+chmod +x diagnose-containers.sh
+
+# Executa o diagnóstico
+./diagnose-containers.sh
+```
+
+Este script:
+- 🔍 Identifica qual container específico está falhando
+- 📋 Mostra logs detalhados de cada container
+- 🏥 Verifica healthchecks e status de saúde
+- 💾 Analisa recursos (memória, disco, portas)
+- 🔧 Fornece sugestões específicas de correção
+- 📊 Mostra uso de recursos Docker
+
+### 2. 🔧 Correção Automática Completa (NOVO - Recomendado)
+
+**Para resolver automaticamente os problemas identificados:**
+
+```bash
+# Torna o script executável
+chmod +x fix-nowhats-ubuntu.sh
+
+# Executa a correção
+./fix-nowhats-ubuntu.sh
+```
+
+Este script:
+- 🛑 Para containers com problemas
+- 🧹 Limpa recursos Docker órfãos
+- 🔐 Corrige permissões Docker automaticamente
+- 📁 Cria diretórios necessários
+- ⚙️ Verifica e corrige arquivo .env
+- 🚀 Inicia containers na ordem correta (PostgreSQL → Redis → Demais)
+- 🏥 Aguarda healthchecks antes de prosseguir
+- 🌐 Testa acesso às URLs da aplicação
+
+### 3. Correção Automática Simples (Casos Básicos)
 
 ```bash
 # Torna o script executável
@@ -31,7 +73,7 @@ Este script:
 - ✅ Inicia NoWhats automaticamente
 - ✅ Funciona com ou sem sudo
 
-### 2. Correção Completa (Para casos complexos)
+### 4. Correção Completa (Para casos complexos)
 
 ```bash
 # Torna o script executável
