@@ -19,3 +19,18 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Código: 57P03\u001b[39m","timestamp":"2025-09-04 00:24:17:2417"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Host tentado: N/A\u001b[39m","timestamp":"2025-09-04 00:24:17:2417"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Porta tentada: N/A\u001b[39m","timestamp":"2025-09-04 00:24:17:2417"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m❌ Tentativa 1/15 falhou:\u001b[39m","timestamp":"2025-09-06 02:54:19:5419"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Erro: the database system is starting up\u001b[39m","timestamp":"2025-09-06 02:54:19:5419"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Código: 57P03\u001b[39m","timestamp":"2025-09-06 02:54:19:5419"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Host tentado: N/A\u001b[39m","timestamp":"2025-09-06 02:54:19:5419"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Porta tentada: N/A\u001b[39m","timestamp":"2025-09-06 02:54:19:5419"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m❌ Tentativa 2/15 falhou:\u001b[39m","timestamp":"2025-09-06 02:54:22:5422"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Erro: the database system is starting up\u001b[39m","timestamp":"2025-09-06 02:54:22:5422"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Código: 57P03\u001b[39m","timestamp":"2025-09-06 02:54:22:5422"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Host tentado: N/A\u001b[39m","timestamp":"2025-09-06 02:54:22:5422"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Porta tentada: N/A\u001b[39m","timestamp":"2025-09-06 02:54:22:5422"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m❌ Tentativa 3/15 falhou:\u001b[39m","timestamp":"2025-09-06 02:54:26:5426"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Erro: the database system is starting up\u001b[39m","timestamp":"2025-09-06 02:54:26:5426"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Código: 57P03\u001b[39m","timestamp":"2025-09-06 02:54:26:5426"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Host tentado: N/A\u001b[39m","timestamp":"2025-09-06 02:54:26:5426"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31m   Porta tentada: N/A\u001b[39m","timestamp":"2025-09-06 02:54:26:5426"}
